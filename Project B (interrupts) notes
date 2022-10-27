@@ -1,0 +1,73 @@
+when assigning val to variable OOB, is that fault limited to the running program or does it possibly overwrite mem loc outside of program?
+
+What happens on an interrupt?
+    transparent interrupts
+1. interrupt happens
+2. saves state of prog. (what line number it's at)
+    a. program counter (program segments and program address)
+    b. saves registers
+    c. all saved onto stack
+3. switches into kernel (real) mode
+    a. dangerous
+4. go to a table in memory (at 0)
+    a. interrupt vector table (IVT)
+        - looks up entry for interrupt
+    b. chooses destination from table
+        - read segment and address
+        - go there
+        - this is interrupt service routine (ISR)
+5. runs that destination
+
+------------interrupt service routine (ISR) (usually OS)---------
+
+6. IRET (interrupt return) instruction (machine code)
+7. goes back to protected (user) mode
+8. returns to stack to fetch previous spot
+    a. restores PC (registers) from stack
+9. returns to the user program
+
+- CP/M called function at address 0005 (BAD)
+    1. don't want to let user program know where OS is
+        a. may overwrite OS stuff
+
+- function calls don't swtich mode, interrupts do
+    1. only way for program to write to device, sucha as a screen
+        a. is for the program to surrender to the OS
+
+-------------------
+
+how about:
+    0x10000 (mem loc): interrupt routine
+        MOV AL, 5   B0 05
+        NOP         90
+        IRET        CF
+        NOP         90
+
+    0x23456: user program
+        NOP         90
+        NOP         90
+        NOP         90
+        INT 0x30    CD 30
+        NOP         90
+        NOP         90
+
+    EIP: program counter - line number of program
+
+    for addrress, rethink it as two numbers: segment and offset
+        real address = segment * 0x10 + offset
+
+        thse addresses are machine code        
+            EIP: holds offset part            
+            CS = code segment: register holds segment part
+            SS = stack segment
+            DS = 
+
+    make segment (CS) 2345, offset (EIP) 6
+        change values
+
+    put into entry 30 of IVT this is 0xc0
+        this should point to 0x10000: ISR
+        1000:0000
+            00 00 00 10
+        2345, 0006
+            06 00 45 23

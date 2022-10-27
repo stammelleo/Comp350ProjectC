@@ -1,0 +1,7 @@
+.idea
+*.md
+*.log
+*.o
+*.img
+*.jar
+*.doc
